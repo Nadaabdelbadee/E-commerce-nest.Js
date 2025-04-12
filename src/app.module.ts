@@ -9,6 +9,8 @@ import { SubCategoryModule } from './modules/sub-category/sub-category.module';
 import { BrandModule } from './modules/brand/brand.module';
 import { ProductModule } from './modules/product/product.module';
 import { globalModule } from './global.module';
+import { CouponModule } from './modules/coupon/coupon.module';
+import { CartModule } from './modules/cart/cart.module';
 
 @Module({
   imports: [
@@ -22,7 +24,9 @@ import { globalModule } from './global.module';
     CategoryModule,
     SubCategoryModule,
     BrandModule,
-    ProductModule
+    ProductModule,
+    CouponModule,
+    CartModule
   ],
 
   controllers: [AppController],

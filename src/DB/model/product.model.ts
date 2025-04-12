@@ -4,7 +4,6 @@ import slugify from 'slugify';
 import { User } from './user.model';
 import { Category } from './category.model';
 import { SubCategory } from './subCategory.model';
-import { number } from 'zod';
 import { Brand } from './brand.model';
 
 
@@ -45,25 +44,25 @@ export class Product {
     @Prop({ type: String })
     customId: string
 
-    @Prop({ type: number, required: true })
+    @Prop({ type: Number, required: true })
     price: number
 
-    @Prop({ type: number, required: true, min: 1, max: 100 })
+    @Prop({ type: Number, required: true, min: 1, max: 100 })
     discount: number
 
-    @Prop({ type: number, required: true, min: 1, max: 100 })
+    @Prop({ type: Number, required: true})
     subPrice: number
 
-    @Prop({ type: number, required: true })
+    @Prop({ type: Number, required: true })
     stock: number
 
-    @Prop({ type: number, required: true })
+    @Prop({ type: Number, required: true })
     quantity: number
 
-    @Prop({ type: number })
+    @Prop({ type: Number })
     rateNumber: number
 
-    @Prop({ type: number })
+    @Prop({ type: Number })
     rateAvg: number
 }
 

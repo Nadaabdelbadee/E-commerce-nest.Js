@@ -23,7 +23,7 @@ export class Cart {
     })
     products: { productId: Types.ObjectId, quantity: number, finalPrice: number }[];
 
-    @Prop({ type: Number, required: true })
+    @Prop({ type: Number })
     subTotal: number;
 
 }

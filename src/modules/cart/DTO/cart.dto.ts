@@ -14,3 +14,8 @@ export class createCartDto {
     @IsPositive()
     quantity: number
 }
+export class removeFromCartDto {
+    @IsString()
+    @IsNotEmpty()
+    productId: string
+}

@@ -16,8 +16,8 @@ export abstract class DBRepository<TDocument> {
     async create(data: Partial<TDocument>): Promise<TDocument> {
         return this.model.create(data)
     }
-    async findOne(query: FilterQuery<TDocument>): Promise<TDocument | null> {
-        return this.model.findOne(query)
+    async findOne(query: FilterQuery<TDocument>, populate?: PopulateOptions[]): Promise<TDocument | null> {
+        return this.model.findOne(query).populate(populate || [])
     }
     async findById(Id: Types.ObjectId): Promise<TDocument | null> {
         return this.model.findById(Id)

@@ -33,4 +33,11 @@ export class paymentService {
         })
 
     }
+
+    async refund({payment_intent, reason}) {
+        return await this.stripe.refunds.create({
+            payment_intent,
+            reason
+        })
+    }
 }

@@ -1,10 +1,10 @@
-import { Body, Controller, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Patch, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { Auth } from 'src/common/decorator/auth.decorator';
 import { UserRole } from 'src/common/Types/types';
 import { UserDecorator } from 'src/common/decorator/user.decorator';
 import { UserDocument } from 'src/DB/model/user.model';
-import { createOrderDto } from './DTO/order.dto';
+import { createOrderDto, createPaymentDto } from './DTO/order.dto';
 
 @Controller('order')
 export class OrderController {
@@ -23,7 +23,21 @@ export class OrderController {
     @Post("create-payment")
     @Auth(UserRole.admin, UserRole.user)
     @UsePipes(new ValidationPipe({}))
-    async createPayment(@Body("orderId") orderid: string, @UserDecorator() user: UserDocument) {
-        return this._OrderService.paymentWithStripe(orderid, user)
+    async createPayment(@Body() body: createPaymentDto, @UserDecorator() user: UserDocument) {
+        return this._OrderService.paymentWithStripe(body, user)
     }
+    //============================== webhook =============================
+    @Post("webhook")
+    async webhookService(@Body() data: any) {
+        return this._OrderService.webhookService(data)
+    }
+
+    //============================== cancelOrder =============================
+    @Patch("cancel")
+    @Auth(UserRole.admin, UserRole.user)
+    @UsePipes(new ValidationPipe({}))
+    async cancelOrder(@Body("orderId") orderId: string, @UserDecorator() user: UserDocument) {
+        return this._OrderService.cancelOrder(orderId, user)
+    }
+
 }

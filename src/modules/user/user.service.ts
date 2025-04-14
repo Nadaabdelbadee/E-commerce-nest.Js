@@ -63,7 +63,7 @@ export class UserService {
             if (new Date() > otpExist.expireAT) {
                 throw new BadGatewayException("otp is expired")
             }
-            await this._UserRepositiryService.findByOneAndUpdate({ _id: userExist["_id"] }, { confirmed: true });
+            await this._UserRepositiryService.findByIdAndUpdate({ _id: userExist["_id"] }, { confirmed: true });
             await this._OTPRepositiryService.findOneAndDelete({ _id: otpExist._id })
             return { message: "done" }
         } catch (error) {

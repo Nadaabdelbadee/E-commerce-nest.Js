@@ -1,18 +1,20 @@
-import { Max } from 'class-validator';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Order } from './../../DB/model/order.model';
+import { BadRequestException, Injectable, Query } from '@nestjs/common';
 import { OrderRepositiryService } from 'src/DB/Repository/order.repository ';
-import { createOrderDto } from './DTO/order.dto';
+import { createOrderDto, createPaymentDto } from './DTO/order.dto';
 import { UserDocument } from 'src/DB/model/user.model';
 import { CartRepositiryService } from 'src/DB/Repository/cart.repository ';
 import { OrderStatusTypes, PaymentMethodTypes } from 'src/common/Types/types';
 import { paymentService } from './service/paymeny';
+import { CouponRepositiryService } from 'src/DB/Repository/coupon.repository';
 
 @Injectable()
 export class OrderService {
     constructor(
         private readonly _CartRepositiryService: CartRepositiryService,
         private readonly _OrderRepositiryService: OrderRepositiryService,
-        private readonly _paymentService: paymentService) { }
+        private readonly _paymentService: paymentService,
+        private readonly _CouponRepositiryService: CouponRepositiryService) { }
 
     // ============================= create Order ================================
     async createOrder(body: createOrderDto, user: UserDocument) {
@@ -37,9 +39,9 @@ export class OrderService {
 
 
     // ============================= paymentWithStripe ================================
-    async paymentWithStripe(orderId: string, user: UserDocument) {
+    async paymentWithStripe(body: createPaymentDto, user: UserDocument) {
 
-        const order = await this._OrderRepositiryService.findOne({ _id: orderId, userId: user._id, status: OrderStatusTypes.pending },
+        const order = await this._OrderRepositiryService.findOne({ _id: body.orderId, userId: user._id, status: OrderStatusTypes.pending },
             [{
                 path: "cartId",
                 populate: [{ path: "products.productId" }]
@@ -50,7 +52,18 @@ export class OrderService {
         if (!order) {
             throw new BadRequestException("order not found")
         }
-        const coupon = await this._paymentService.createCoupon({ percent_off: 50 })
+
+        // let couponPercentage 
+
+        // if (body?.couponId) {
+        //     const couponExist = await this._CouponRepositiryService.findOne({ _id: body.couponId })
+        //     if (couponExist) {
+        //         couponPercentage = couponExist.amount
+        //     }
+        // }
+
+        const coupon = await this._paymentService.createCoupon({ percent_off: 10 })
+
         const session = await this._paymentService.createCheckOutSession({
             customer_email: user.email,
             metadata: { orderId: order._id.toString() },
@@ -68,5 +81,50 @@ export class OrderService {
             discounts: [{ coupon: coupon.id }]
         })
         return { url: session.url }
+    }
+    // ============================= webhookService ================================
+    async webhookService(data: any) {
+
+        const orderId = data.data.object.metadata.orderId
+        const order = await this._OrderRepositiryService.findOneAndUpdate({ _id: orderId },
+            {
+                status: OrderStatusTypes.paid,
+                orderChanges: {
+                    paidAt: new Date(),
+                },
+                paymenyIntent: data.data.object.payment_intent
+            }
+        )
+        return { order }
+    }
+
+
+    // ============================= cancelOrder ================================
+    async cancelOrder(orderId: string, user: UserDocument) {
+
+        const order = await this._OrderRepositiryService.findOneAndUpdate({
+            _id: orderId, userId: user._id,
+            status: { $in: [OrderStatusTypes.pending, OrderStatusTypes.placed, OrderStatusTypes.paid] }
+        },
+            {
+                orderChanges: {
+                    cancelledAt: new Date(),
+                    cancelledBy: user._id
+                }
+            })
+        if (!order) {
+            throw new BadRequestException("order not found")
+        }
+        if (order.paymentMethod == PaymentMethodTypes.card) {
+            await this._paymentService.refund({ payment_intent: order.paymenyIntent, reason: "requested_by_customer" })
+            await this._OrderRepositiryService.findOneAndUpdate({ _id: orderId }, {
+                status: OrderStatusTypes.refunded,
+                orderChanges: {
+                    refundedAt: new Date(),
+                    refundedBy: user._id
+                }
+            })
+        }
+        return { message: "done" }
     }
 }

@@ -48,7 +48,8 @@ export class Order {
         }
     })
     orderChanges: object
-
+    @Prop({ type: String })
+    paymenyIntent: string
 
 }
 

@@ -37,9 +37,14 @@ export abstract class DBRepository<TDocument> {
         return result
 
     }
-    async findByOneAndUpdate(query: FilterQuery<TDocument>, data: Partial<TDocument>): Promise<TDocument | null> {
+    async findByIdAndUpdate(query: FilterQuery<TDocument>, data: Partial<TDocument>): Promise<TDocument | null> {
         return this.model.findByIdAndUpdate(query, data, { new: true })
     }
+    
+    async findOneAndUpdate(query: FilterQuery<TDocument>, data: Partial<TDocument>): Promise<TDocument | null> {
+        return this.model.findOneAndUpdate(query, data, { new: true })
+    }
+
     async findOneAndDelete(query: FilterQuery<TDocument>): Promise<TDocument | null> {
         return this.model.findOneAndDelete(query)
     }
